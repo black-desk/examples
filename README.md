@@ -12,6 +12,6 @@ This repository includes some `How-to-X` examples of D-Bus IPC protocol.
 
 ### Get credentials of method caller
 
-"Credentials" means UID, GID and PID here.
+"Credentials" means UID, GID, PID and linux security labels here.
 
 [Example](./get_credentials_of_method_caller)

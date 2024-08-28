@@ -3,7 +3,9 @@
 #include <QDBusArgument>
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
+#include <QDBusUnixFileDescriptor>
 #include <QDebug>
+#include <QFile>
 #include <QJsonObject>
 
 namespace QDBusGetCredentialsExample
@@ -63,38 +65,69 @@ void printCallerUnixCredentials(const QDBusContext &context) noexcept
 
         qInfo() << "Unix credentials of caller received:";
 
-        Q_ASSERT(credentials.contains("LinuxSecurityLabel"));
-        Q_ASSERT(credentials.find("LinuxSecurityLabel")->type() ==
-                 QVariant::ByteArray);
+        // https://dbus.freedesktop.org/doc/dbus-specification.html#bus-messages-get-connection-credentials
 
-        qInfo() << "\tLinuxSecurityLabel:"
-                << credentials["LinuxSecurityLabel"].toByteArray();
+        if (credentials.contains("UnixUserID")) {
+                Q_ASSERT(credentials.find("UnixUserID")->type() ==
+                         QVariant::UInt);
+                bool ok = false;
+                qInfo() << "\tUnixUserID:"
+                        << credentials["UnixUserID"].toUInt(&ok);
+                Q_ASSERT(ok);
+        }
 
-        // WARNING:
-        // Check the warning in printCallerUIDAndPID function.
+        if (credentials.contains("UnixGroupIDs")) {
+                Q_ASSERT(credentials.find("UnixGroupIDs")
+                                 ->canConvert<QDBusArgument>());
 
-        Q_ASSERT(credentials.contains("ProcessID"));
-        Q_ASSERT(credentials.find("ProcessID")->type() == QVariant::UInt);
+                auto unixGroupIDsQDBusArgument =
+                        credentials.find("UnixGroupIDs")->value<QDBusArgument>();
+                QList<quint32> unixGroupIDs;
+                unixGroupIDsQDBusArgument >> unixGroupIDs;
+                qInfo() << "\tUnixGroupIDs:" << unixGroupIDs;
+        }
 
-        bool ok = false;
-        qInfo() << "\tProcessID:" << credentials["ProcessID"].toUInt(&ok);
+        if (credentials.contains("ProcessFD")) {
+                Q_ASSERT(credentials.find("ProcessFD")
+                                 ->canConvert<QDBusArgument>());
 
-        Q_ASSERT(ok);
+                auto unixProcessFDQDBusArgument =
+                        credentials.find("ProcessFD")->value<QDBusArgument>();
+                QDBusUnixFileDescriptor unixProcessFD;
+                unixProcessFDQDBusArgument >> unixProcessFD;
+                qInfo() << "\tProcessFD:" << unixProcessFD.fileDescriptor();
+                auto fdinfoFile =
+                        QFile(QString("/proc/self/fdinfo/%1")
+                                      .arg(unixProcessFD.fileDescriptor()));
+                bool ok = fdinfoFile.open(QIODevice::ReadOnly);
+                Q_ASSERT(ok);
 
-        Q_ASSERT(credentials.contains("UnixGroupIDs"));
-        Q_ASSERT(credentials.find("UnixGroupIDs")->canConvert<QDBusArgument>());
+                auto fdinfo = fdinfoFile.readAll();
 
-        auto unixGroupIDsQDBusArgument =
-                credentials.find("UnixGroupIDs")->value<QDBusArgument>();
-        QList<quint64> unixGroupIDs;
-        unixGroupIDsQDBusArgument >> unixGroupIDs;
-        qInfo() << "\tUnixGroupIDs:" << unixGroupIDs;
+                qInfo() << "\tProcessFD info:" << Qt::endl;
+                qInfo() << QString::fromUtf8(fdinfo);
+        }
 
-        Q_ASSERT(credentials.contains("UnixUserID"));
-        Q_ASSERT(credentials.find("UnixUserID")->type() == QVariant::UInt);
+        if (credentials.contains("ProcessID")) {
+                // WARNING:
+                // Check the warning in printCallerUIDAndPID function.
 
-        qInfo() << "\tUnixUserID:" << credentials["UnixUserID"].toUInt(&ok);
-        Q_ASSERT(ok);
+                Q_ASSERT(credentials.find("ProcessID")->type() ==
+                         QVariant::UInt);
+
+                bool ok = false;
+                qInfo() << "\tProcessID:"
+                        << credentials["ProcessID"].toUInt(&ok);
+                Q_ASSERT(ok);
+        }
+
+        if (credentials.contains("LinuxSecurityLabel")) {
+                Q_ASSERT(credentials.find("LinuxSecurityLabel")->type() ==
+                         QVariant::ByteArray);
+
+                qInfo() << "\tLinuxSecurityLabel:"
+                        << credentials["LinuxSecurityLabel"].toByteArray();
+        }
 }
 }
 
