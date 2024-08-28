@@ -11,7 +11,7 @@ class Server : public QObject, public QDBusContext {
         using QObject::QObject;
 
     public:
-        virtual QVariantMap TestMethod(const QVariantMap &parameters);
+        virtual void TestMethod();
 
     Q_SIGNALS:
         void TestSignal();

@@ -17,6 +17,17 @@ auto main(int argc, char **argv) -> int
                         auto conn = QDBusConnection::connectToPeer(
                                 "unix:path=" + getPeerToPeerSocketAddress(),
                                 "p2p DBus connection to server");
+
+                        // FIXME:
+                        // Wait for connection authentication finished.
+                        // Otherwise,
+                        // you have to enable annonymous authentication
+                        // in your service.
+                        // using QDBusServer::setAnonymousAuthenticationAllowed(true)
+                        // Check https://codereview.qt-project.org/c/qt/qtbase/+/308735
+                        // for more information.
+                        QThread::sleep(1);
+
                         if (!conn.isConnected()) {
                                 qCritical()
                                         << conn.name() << "is not connected:"
@@ -42,21 +53,18 @@ auto main(int argc, char **argv) -> int
                                         Server::TestSignal,
                                 []() {
                                         qInfo() << "TestSignal arrived";
-                                        QCoreApplication::exit();
+                                        QCoreApplication::exit(0);
                                 });
 
-                        QJsonObject object;
-                        object.insert("a", "b");
-                        QJsonObject object1;
-                        object1.insert("b", object);
-                        auto reply = server->TestMethod(object1.toVariantMap());
+                        auto reply = server->TestMethod();
                         reply.waitForFinished();
                         if (reply.isError()) {
-                                qCritical() << "TestMethod error.";
+                                qCritical() << "TestMethod error";
                                 QCoreApplication::exit(-1);
                                 return;
                         }
-                        qInfo() << "reply:" << reply.value();
+                        qInfo() << "TestMethod return";
+                        return;
                 },
                 Qt::QueuedConnection);
 
