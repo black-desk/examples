@@ -25,12 +25,16 @@ CPMFindPackage(
   EXCLUDE_FROM_ALL ON)
 
 find_package(
-  Qt5
+  Qt5 REQUIRED
   COMPONENTS DBus)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+
+find_package(
+  PkgConfig REQUIRED)
+pkg_check_modules(Systemd REQUIRED IMPORTED_TARGET libsystemd)
 
 include(./cmake/PFL.cmake)
 
@@ -53,9 +57,12 @@ pfl_add_library(
   ./src/${PROJECT_NAME}/configure.hpp.in
   ./src/${PROJECT_NAME}/Server.hpp
   ./src/${PROJECT_NAME}/Server.cpp
+  ./src/${PROJECT_NAME}/ServerSDBus.hpp
+  ./src/${PROJECT_NAME}/ServerSDBus.cpp
   ./src/${PROJECT_NAME}/init.hpp
   ./src/${PROJECT_NAME}/init.cpp
   APPS
+  server-sd_bus
   server
   client
   COMPILE_FEATURES
@@ -64,7 +71,8 @@ pfl_add_library(
   LINK_LIBRARIES
   PUBLIC
   Qt::DBus
-  tl::expected)
+  tl::expected
+  PkgConfig::Systemd)
 
 function(get_real_target_name output target)
   get_target_property("${output}" "${target}" ALIASED_TARGET)

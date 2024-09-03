@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QDBusContext>
-#include <qobjectdefs.h>
 
 namespace DBusGetCredentialsExample
 {
