@@ -2,11 +2,12 @@
 #include <QDBusServer>
 #include <QStringView>
 
-#include "QDBusGetCredentialsExample/Server.hpp"
-#include "QDBusGetCredentialsExample/ServerAdaptor.h"
-#include "QDBusGetCredentialsExample/init.hpp"
+#include "DBusGetCredentialsExample/Server.hpp"
+#include "DBusGetCredentialsExample/ServerAdaptor.h"
+#include "DBusGetCredentialsExample/configure.hpp"
+#include "DBusGetCredentialsExample/init.hpp"
 
-using namespace QDBusGetCredentialsExample;
+using namespace DBusGetCredentialsExample;
 
 auto main(int argc, char **argv) -> int
 {
@@ -23,10 +24,9 @@ auto main(int argc, char **argv) -> int
                         Q_UNUSED(adaptor);
 
                         QDBusConnection::sessionBus().registerObject(
-                                "/io/github/blackdesk/QDBusGetCredentialsExample/Server",
-                                server);
+                                serverDBusObjectPath.data(), server);
                         QDBusConnection::sessionBus().registerService(
-                                "io.github.blackdesk.QDBusGetCredentialsExample.Server");
+                                serverDBusServiceName.data());
                 },
                 Qt::QueuedConnection);
 

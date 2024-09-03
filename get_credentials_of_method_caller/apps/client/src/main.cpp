@@ -1,9 +1,10 @@
 #include <QCoreApplication>
 
-#include "QDBusGetCredentialsExample/init.hpp"
-#include "QDBusGetCredentialsExample/io_github_blackdesk_QDBusGetCredentialsExample_Server.h"
+#include "DBusGetCredentialsExample/ServerInterface.h"
+#include "DBusGetCredentialsExample/configure.hpp"
+#include "DBusGetCredentialsExample/init.hpp"
 
-using namespace QDBusGetCredentialsExample;
+using namespace DBusGetCredentialsExample;
 
 auto main(int argc, char **argv) -> int
 {
@@ -13,10 +14,12 @@ auto main(int argc, char **argv) -> int
         auto ret = QMetaObject::invokeMethod(
                 QCoreApplication::instance(),
                 []() {
-                        auto server = new io::github::blackdesk::
-                                QDBusGetCredentialsExample::Server(
-                                        "io.github.blackdesk.QDBusGetCredentialsExample.Server",
-                                        "/io/github/blackdesk/QDBusGetCredentialsExample/Server",
+                        auto server =
+                                new org::example::DBusGetCredentialsExampleServer(
+                                        QString::fromStdString(
+                                                serverDBusServiceName.data()),
+                                        QString::fromStdString(
+                                                serverDBusObjectPath.data()),
                                         QDBusConnection::sessionBus(),
                                         QCoreApplication::instance());
 
@@ -26,7 +29,7 @@ auto main(int argc, char **argv) -> int
                                 return;
                         }
 
-                        auto reply = server->TestMethod();
+                        auto reply = server->Ping();
                         reply.waitForFinished();
                         if (reply.isError()) {
                                 qCritical() << "TestMethod error.";

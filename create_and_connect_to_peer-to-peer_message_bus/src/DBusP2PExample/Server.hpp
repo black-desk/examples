@@ -1,9 +1,9 @@
 #pragma once
 
 #include <QDBusContext>
-#include <qobjectdefs.h>
+#include <QObject>
 
-namespace QDBusP2PExample
+namespace DBusP2PExample
 {
 
 class Server : public QObject, public QDBusContext {
@@ -11,9 +11,9 @@ class Server : public QObject, public QDBusContext {
         using QObject::QObject;
 
     public:
-        virtual void TestMethod();
+        virtual void Ping();
 
     Q_SIGNALS:
-        void TestSignal();
+        void Pong();
 };
 }

@@ -1,4 +1,4 @@
-#include "QDBusGetCredentialsExample/init.hpp"
+#include "DBusGetCredentialsExample/init.hpp"
 
 #include <csignal>
 #include <initializer_list>
@@ -8,9 +8,9 @@
 #include <QDebug>
 #include <QJsonObject>
 
-#include "QDBusGetCredentialsExample/configure.hpp"
+#include "DBusGetCredentialsExample/configure.hpp"
 
-namespace QDBusGetCredentialsExample
+namespace DBusGetCredentialsExample
 {
 
 namespace

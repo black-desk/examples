@@ -1,6 +1,6 @@
 #pragma once
 
-namespace QDBusGetCredentialsExample
+namespace DBusGetCredentialsExample
 {
 
 void initQCoreApplication() noexcept;

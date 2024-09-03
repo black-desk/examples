@@ -1,4 +1,4 @@
-#include "QDBusGetCredentialsExample/Server.hpp"
+#include "DBusGetCredentialsExample/Server.hpp"
 
 #include <QDBusArgument>
 #include <QDBusConnection>
@@ -8,7 +8,7 @@
 #include <QFile>
 #include <QJsonObject>
 
-namespace QDBusGetCredentialsExample
+namespace DBusGetCredentialsExample
 {
 namespace
 {
@@ -131,7 +131,7 @@ void printCallerUnixCredentials(const QDBusContext &context) noexcept
 }
 }
 
-void Server::TestMethod()
+void Server::Ping()
 {
         printCallerUIDAndPID(*this);
         printCallerUnixCredentials(*this);

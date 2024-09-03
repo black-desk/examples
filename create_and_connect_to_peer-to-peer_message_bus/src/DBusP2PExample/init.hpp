@@ -1,6 +1,6 @@
 #pragma once
 
-namespace QDBusP2PExample
+namespace DBusP2PExample
 {
 
 void initQCoreApplication() noexcept;

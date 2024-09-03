@@ -1,4 +1,4 @@
-#include "QDBusP2PExample/init.hpp"
+#include "DBusP2PExample/init.hpp"
 
 #include <csignal>
 #include <initializer_list>
@@ -8,9 +8,9 @@
 #include <QDebug>
 #include <QJsonObject>
 
-#include "QDBusP2PExample/configure.hpp"
+#include "DBusP2PExample/configure.hpp"
 
-namespace QDBusP2PExample
+namespace DBusP2PExample
 {
 
 namespace

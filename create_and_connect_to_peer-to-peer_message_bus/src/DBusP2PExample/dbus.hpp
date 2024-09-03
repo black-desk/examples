@@ -6,12 +6,14 @@
 #include <QStandardPaths>
 #include <tl/expected.hpp>
 
-namespace QDBusP2PExample
+#include "DBusP2PExample/configure.hpp"
+
+namespace DBusP2PExample
 {
 [[nodiscard]]
-inline auto registerDBusObject(QDBusConnection conn, const QString &path,
-                               QObject *obj) noexcept
-        -> tl::expected<void, std::exception>
+inline auto
+registerDBusObject(QDBusConnection conn, const QString &path,
+                   QObject *obj) noexcept -> tl::expected<void, std::exception>
 {
         if (conn.registerObject(path, obj)) {
                 qDebug() << "register object" << path << "on" << conn.name();
@@ -79,7 +81,9 @@ inline auto getPeerToPeerSocketAddress() noexcept
         auto runtimeDir = QStandardPaths::writableLocation(
                 QStandardPaths::RuntimeLocation);
 
-        return QString("%1/blackdesk/QDBusP2PExample/server").arg(runtimeDir);
+        return QString("%1%2")
+                .arg(runtimeDir)
+                .arg(serverDBusPeerToPeerSocketAddress.data());
 }
 
 }

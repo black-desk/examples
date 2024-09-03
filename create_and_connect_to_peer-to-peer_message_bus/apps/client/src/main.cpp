@@ -1,10 +1,11 @@
 #include <QCoreApplication>
 
-#include "QDBusP2PExample/dbus.hpp"
-#include "QDBusP2PExample/init.hpp"
-#include "QDBusP2PExample/io_github_blackdesk_QDBusP2PExample_Server.h"
+#include "DBusP2PExample/ServerInterface.h"
+#include "DBusP2PExample/configure.hpp"
+#include "DBusP2PExample/dbus.hpp"
+#include "DBusP2PExample/init.hpp"
 
-using namespace QDBusP2PExample;
+using namespace DBusP2PExample;
 
 auto main(int argc, char **argv) -> int
 {
@@ -22,8 +23,8 @@ auto main(int argc, char **argv) -> int
                         // Wait for connection authentication finished.
                         // Otherwise,
                         // you have to enable annonymous authentication
-                        // in your service.
-                        // using QDBusServer::setAnonymousAuthenticationAllowed(true)
+                        // in your service by calling
+                        // QDBusServer::setAnonymousAuthenticationAllowed(true)
                         // Check https://codereview.qt-project.org/c/qt/qtbase/+/308735
                         // for more information.
                         QThread::sleep(1);
@@ -36,10 +37,9 @@ auto main(int argc, char **argv) -> int
                                 return;
                         }
 
-                        auto server = new io::github::blackdesk::QDBusP2PExample::
-                                Server("",
-                                       "/io/github/blackdesk/QDBusP2PExample/Server",
-                                       conn, QCoreApplication::instance());
+                        auto server = new org::example::QDBusP2PExampleServer(
+                                "", serverDBusObjectPath.data(), conn,
+                                QCoreApplication::instance());
 
                         if (!server->isValid()) {
                                 qCritical() << server->lastError();
@@ -49,21 +49,20 @@ auto main(int argc, char **argv) -> int
 
                         QObject::connect(
                                 server,
-                                &io::github::blackdesk::QDBusP2PExample::
-                                        Server::TestSignal,
+                                &org::example::QDBusP2PExampleServer::Pong,
                                 []() {
-                                        qInfo() << "TestSignal arrived";
+                                        qInfo() << "Signal Pong arrived";
                                         QCoreApplication::exit(0);
                                 });
 
-                        auto reply = server->TestMethod();
+                        auto reply = server->Ping();
                         reply.waitForFinished();
                         if (reply.isError()) {
-                                qCritical() << "TestMethod error";
+                                qCritical() << "Ping error:" << reply.error();
                                 QCoreApplication::exit(-1);
                                 return;
                         }
-                        qInfo() << "TestMethod return";
+                        qInfo() << "Method call of Ping return";
                         return;
                 },
                 Qt::QueuedConnection);

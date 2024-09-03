@@ -2,12 +2,13 @@
 #include <QDBusServer>
 #include <QStringView>
 
-#include "QDBusP2PExample/Server.hpp"
-#include "QDBusP2PExample/ServerAdaptor.h"
-#include "QDBusP2PExample/dbus.hpp"
-#include "QDBusP2PExample/init.hpp"
+#include "DBusP2PExample/Server.hpp"
+#include "DBusP2PExample/ServerAdaptor.h"
+#include "DBusP2PExample/configure.hpp"
+#include "DBusP2PExample/dbus.hpp"
+#include "DBusP2PExample/init.hpp"
 
-using namespace QDBusP2PExample;
+using namespace DBusP2PExample;
 
 auto main(int argc, char **argv) -> int
 {
@@ -75,7 +76,7 @@ auto main(int argc, char **argv) -> int
                                 [server](const QDBusConnection &conn) noexcept {
                                         auto res = registerDBusObject(
                                                 conn,
-                                                "/io/github/blackdesk/QDBusP2PExample/Server",
+                                                serverDBusObjectPath.data(),
                                                 server);
                                         if (!res.has_value()) {
                                                 qCritical()
@@ -88,7 +89,8 @@ auto main(int argc, char **argv) -> int
                                                 [conn]() {
                                                         unregisterDBusObject(
                                                                 conn,
-                                                                "/io/github/blackdesk/QDBusP2PExample/Server");
+                                                                serverDBusObjectPath
+                                                                        .data());
                                                 });
                                 });
                 },

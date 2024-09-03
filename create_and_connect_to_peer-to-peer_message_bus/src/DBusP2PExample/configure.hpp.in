@@ -1,0 +1,15 @@
+#pragma once
+
+#include <string_view>
+
+namespace DBusP2PExample
+{
+
+constexpr std::string_view version = "@PROJECT_VERSION@";
+constexpr std::string_view serverDBusObjectPath = "@SERVER_DBUS_OBJECT_PATH@";
+constexpr std::string_view serverDBusInterfaceName =
+        "@SERVER_DBUS_INTERFACE_NAME@";
+constexpr std::string_view serverDBusPeerToPeerSocketAddress =
+        "@SERVER_DBUS_PEER2PEER_SOCKET_ADDRESS@";
+
+}

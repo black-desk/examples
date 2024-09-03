@@ -3,7 +3,7 @@
 #include <QDBusContext>
 #include <qobjectdefs.h>
 
-namespace QDBusGetCredentialsExample
+namespace DBusGetCredentialsExample
 {
 
 class Server : public QObject, public QDBusContext {
@@ -11,6 +11,6 @@ class Server : public QObject, public QDBusContext {
         using QObject::QObject;
 
     public:
-        virtual void TestMethod();
+        virtual void Ping();
 };
 }

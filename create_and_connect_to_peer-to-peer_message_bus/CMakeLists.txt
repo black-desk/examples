@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.23 FATAL_ERROR)
 
 project(
-  QDBusP2PExample
+  DBusP2PExample
   VERSION 0.1.0
   DESCRIPTION "An example project."
   HOMEPAGE_URL
@@ -40,19 +40,23 @@ if(PROEJCTTEMPLATE_ENABLE_TESTING)
   enable_testing()
 endif()
 
+set(SERVER_DBUS_OBJECT_PATH "/org/example/${PROJECT_NAME}Server")
+set(SERVER_DBUS_INTERFACE_NAME "org.example.${PROJECT_NAME}Server")
+set(SERVER_DBUS_PEER2PEER_SOCKET_ADDRESS "${SERVER_DBUS_OBJECT_PATH}")
+
 pfl_add_library(
   DISABLE_INSTALL
   MERGED_HEADER_PLACEMENT
   VERSION
   ${PROJECT_VERSION}
   SOURCES
-  ./src/QDBusP2PExample/configure.hpp.in
-  ./src/QDBusP2PExample/Server.hpp
-  ./src/QDBusP2PExample/Server.cpp
-  ./src/QDBusP2PExample/dbus.hpp
-  ./src/QDBusP2PExample/dbus.cpp
-  ./src/QDBusP2PExample/init.hpp
-  ./src/QDBusP2PExample/init.cpp
+  ./src/${PROJECT_NAME}/configure.hpp.in
+  ./src/${PROJECT_NAME}/Server.hpp
+  ./src/${PROJECT_NAME}/Server.cpp
+  ./src/${PROJECT_NAME}/dbus.hpp
+  ./src/${PROJECT_NAME}/dbus.cpp
+  ./src/${PROJECT_NAME}/init.hpp
+  ./src/${PROJECT_NAME}/init.cpp
   APPS
   server
   client
@@ -94,11 +98,11 @@ function(
 endfunction()
 
 qtdbusp2pexample_add_dbus_adaptor(
-  QDBusP2PExample::QDBusP2PExample
-  ${PROJECT_SOURCE_DIR}/api/dbus/io.github.blackdesk.QDBusP2PExample.Server.xml
-  QDBusP2PExample/Server.hpp
-  QDBusP2PExample::Server
-  src/QDBusP2PExample/ServerAdaptor
+  ${PROJECT_NAME}::${PROJECT_NAME}
+  ${PROJECT_SOURCE_DIR}/api/dbus/${SERVER_DBUS_INTERFACE_NAME}.xml
+  ${PROJECT_NAME}/Server.hpp
+  ${PROJECT_NAME}::Server
+  src/${PROJECT_NAME}/ServerAdaptor
   ServerAdaptor)
 
 function(qtdbusp2pexample_add_dbus_interface target xml basename) # include
@@ -117,6 +121,6 @@ function(qtdbusp2pexample_add_dbus_interface target xml basename) # include
 endfunction()
 
 qtdbusp2pexample_add_dbus_interface(
-  QDBusP2PExample::QDBusP2PExample
-  ${PROJECT_SOURCE_DIR}/api/dbus/io.github.blackdesk.QDBusP2PExample.Server.xml
-  ./src/QDBusP2PExample/io_github_blackdesk_QDBusP2PExample_Server)
+  ${PROJECT_NAME}::${PROJECT_NAME}
+  ${PROJECT_SOURCE_DIR}/api/dbus/${SERVER_DBUS_INTERFACE_NAME}.xml
+  ./src/${PROJECT_NAME}/ServerInterface)

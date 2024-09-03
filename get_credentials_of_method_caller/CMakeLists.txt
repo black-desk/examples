@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.23 FATAL_ERROR)
 
 project(
-  QDBusGetCredentialsExample
+  DBusGetCredentialsExample
   VERSION 0.1.0
   DESCRIPTION "An example project."
   HOMEPAGE_URL
@@ -40,17 +40,21 @@ if(PROEJCTTEMPLATE_ENABLE_TESTING)
   enable_testing()
 endif()
 
+set(SERVER_DBUS_SERVICE_NAME org.example.${PROJECT_NAME}Server)
+set(SERVER_DBUS_OBJECT_PATH /org/example/${PROJECT_NAME}Server)
+set(SERVER_DBUS_INTERFACE_NAME ${SERVER_DBUS_SERVICE_NAME})
+
 pfl_add_library(
   DISABLE_INSTALL
   MERGED_HEADER_PLACEMENT
   VERSION
   ${PROJECT_VERSION}
   SOURCES
-  ./src/QDBusGetCredentialsExample/configure.hpp.in
-  ./src/QDBusGetCredentialsExample/Server.hpp
-  ./src/QDBusGetCredentialsExample/Server.cpp
-  ./src/QDBusGetCredentialsExample/init.hpp
-  ./src/QDBusGetCredentialsExample/init.cpp
+  ./src/${PROJECT_NAME}/configure.hpp.in
+  ./src/${PROJECT_NAME}/Server.hpp
+  ./src/${PROJECT_NAME}/Server.cpp
+  ./src/${PROJECT_NAME}/init.hpp
+  ./src/${PROJECT_NAME}/init.cpp
   APPS
   server
   client
@@ -92,11 +96,11 @@ function(
 endfunction()
 
 qtdbusp2pexample_add_dbus_adaptor(
-  QDBusGetCredentialsExample::QDBusGetCredentialsExample
-  ${PROJECT_SOURCE_DIR}/api/dbus/io.github.blackdesk.QDBusGetCredentialsExample.Server.xml
-  QDBusGetCredentialsExample/Server.hpp
-  QDBusGetCredentialsExample::Server
-  src/QDBusGetCredentialsExample/ServerAdaptor
+  ${PROJECT_NAME}::${PROJECT_NAME}
+  ${PROJECT_SOURCE_DIR}/api/dbus/${SERVER_DBUS_INTERFACE_NAME}.xml
+  ${PROJECT_NAME}/Server.hpp
+  ${PROJECT_NAME}::Server
+  src/${PROJECT_NAME}/ServerAdaptor
   ServerAdaptor)
 
 function(qtdbusp2pexample_add_dbus_interface target xml basename) # include
@@ -115,6 +119,6 @@ function(qtdbusp2pexample_add_dbus_interface target xml basename) # include
 endfunction()
 
 qtdbusp2pexample_add_dbus_interface(
-  QDBusGetCredentialsExample::QDBusGetCredentialsExample
-  ${PROJECT_SOURCE_DIR}/api/dbus/io.github.blackdesk.QDBusGetCredentialsExample.Server.xml
-  ./src/QDBusGetCredentialsExample/io_github_blackdesk_QDBusGetCredentialsExample_Server)
+  ${PROJECT_NAME}::${PROJECT_NAME}
+  ${PROJECT_SOURCE_DIR}/api/dbus/${SERVER_DBUS_INTERFACE_NAME}.xml
+  ./src/${PROJECT_NAME}/ServerInterface)
