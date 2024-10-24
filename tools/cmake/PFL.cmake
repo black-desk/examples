@@ -29,7 +29,7 @@ For futher information, check [examples] and [documents].
 
 [PFL.cmake]: https://github.com/black-desk/PFL.cmake/releases/latest/download/PFL.cmake
 
-[the Pitchfork layout]: https://github.com/vector-of-bool/pitchfork/blob/develop/data/spec.bs
+[the Pitchfork layout]: https://black-desk.github.io/pages/pintchfork-layout.html
 
 [examples]: https://github.com/black-desk/PFL.cmake/tree/master/examples
 
@@ -101,7 +101,7 @@ function(_pfl_fatal)
   _pfl_message(FATAL_ERROR ${ARGV})
 endfunction()
 
-set(_PFL_VERSION "v0.5.2")
+set(_PFL_VERSION "v0.7.0")
 
 _pfl_info("Version: ${_PFL_VERSION}")
 
@@ -187,11 +187,15 @@ macro(PFL_init) # NOTE: As we might call enable_testing() in `PFL_init`, it have
   set(MULTI_VALUE_KEYWORDS
       # List of third party projects which current project depends on.
       # Each string in this list indicate a external project in this syntax:
-      # "DIRECTORY PACKAGE"
+      # "DIRECTORY PACKAGE [TARGET...]"
       # It means that the external project
       # in ${CMAKE_CURRENT_SOURCE_DIR}/external/<DIRECTORY>
       # should override find_package(<PACKAGE>),
       # when `ENABLE_EXTERNALS` is true.
+      # `TARGET` is optional,
+      # and it's used to specify the target name of the external project.
+      # The generated Find<PACKAGE>.cmake file will
+      # check these targets is available or not.
       EXTERNALS)
   _pfl_parse_arguments(${ARGN})
 
@@ -241,10 +245,9 @@ macro(PFL_init) # NOTE: As we might call enable_testing() in `PFL_init`, it have
     enable_testing()
   endif()
 
-  macro(generate_find_for_external PACKAGE TARGET)
-    # message(FATAL_ERROR "${PACKAGE} ${TARGET}")
+  function(generate_find_for_external DIRECTORY PACKAGE) # TARGET...
     if(NOT EXISTS
-       ${CMAKE_CURRENT_SOURCE_DIR}/external/${PACKAGE}/CMakeLists.txt)
+       ${CMAKE_CURRENT_SOURCE_DIR}/external/${DIRECTORY}/CMakeLists.txt)
       _pfl_fatal(
         "${DIRECTORY} is not a external project:"
         "${CMAKE_CURRENT_SOURCE_DIR}/external/${DIRECTORY}/CMakeLists.txt not found."
@@ -253,25 +256,32 @@ macro(PFL_init) # NOTE: As we might call enable_testing() in `PFL_init`, it have
 
     set(FIND_FILE
         ${CMAKE_CURRENT_BINARY_DIR}/_pfl_external/Find${PACKAGE}.cmake)
+    file(WRITE ${FIND_FILE} "set(ALL_TARGES_IS_AVALIABLE YES)\n")
+    foreach(TARGET IN LISTS ARGN)
+      file(
+        APPEND ${FIND_FILE}
+        "if(NOT TARGET ${TARGET})\n" #
+        "  set(ALL_TARGES_IS_AVALIABLE NO)\n" #
+        "endif()\n")
+    endforeach()
     file(
-      WRITE ${FIND_FILE}
-      "if(TARGET ${TARGET})\n" #
-      "  return()\n" #
+      APPEND ${FIND_FILE}
+      "if(NOT ALL_TARGES_IS_AVALIABLE)\n" #
+      "  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/${DIRECTORY})\n"
       "endif()\n" #
-      "add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/${PACKAGE})\n"
-      "set(${PACKAGE}_FOUND YES)")
-  endmacro()
+      "set(${PACKAGE}_FOUND YES)\n")
+  endfunction()
 
   if(${PROJECT_NAME}_ENABLE_EXTERNALS AND DEFINED ${PROJECT_NAME}_EXTERNALS)
     list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR}/_pfl_external)
     foreach(EXTERNAL ${${PROJECT_NAME}_EXTERNALS})
       string(REPLACE " " ";" EXTERNAL "${EXTERNAL}")
-      list(GET EXTERNAL 0 PACKAGE_NAME)
-      _pfl_info(
-        "Using external project ${PACKAGE_NAME} at ${CMAKE_CURRENT_SOURCE_DIR}/external/${PACKAGE_NAME}"
-      )
+      list(GET EXTERNAL 0 DIRECTORY)
+      list(GET EXTERNAL 1 PACKAGE_NAME)
+      _pfl_info("Using external project ${PACKAGE_NAME}"
+                "at ${CMAKE_CURRENT_SOURCE_DIR}/external/${DIRECTORY}")
       generate_find_for_external(${EXTERNAL})
-      find_package(${PACKAGE_NAME} REQUIRED)
+      find_package(${PACKAGE_NAME} QUIET REQUIRED)
     endforeach()
   endif()
 endmacro()
@@ -499,6 +509,14 @@ macro(_pfl_add_target_common)
     target_compile_options(${TARGET} ${PFL_ARG_COMPILE_OPTIONS})
   endif()
 
+  if(DEFINED PFL_ARG_LINK_OPTIONS)
+    target_link_options(${TARGET} ${PFL_ARG_LINK_OPTIONS})
+  endif()
+
+  if(DEFINED PFL_ARG_PROPERTIES)
+    set_target_properties(${TARGET} PROPERTIES ${PFL_ARG_PROPERTIES})
+  endif()
+
   if(DEFINED PFL_ARG_DEPENDENCIES)
     foreach(DEPENDENCY ${PFL_ARG_DEPENDENCIES})
       if("${DEPENDENCY}" STREQUAL "PUBLIC" OR "${DEPENDENCY}" STREQUAL
@@ -638,7 +656,11 @@ function(pfl_add_library)
       # Arguments passed to target_compile_features().
       COMPILE_FEATURES
       # Arguments passed to target_compile_options().
-      COMPILE_OPTIONS)
+      COMPILE_OPTIONS
+      # Arguments passed to target_link_options().
+      LINK_OPTIONS
+      # Arguments passed to set_target_properties().
+      PROPERTIES)
   _pfl_parse_arguments(${ARGN})
   _pfl_current_compoent()
 
@@ -912,7 +934,11 @@ function(PFL_add_executable)
       # Arguments passed to target_compile_features().
       COMPILE_FEATURES
       # Arguments passed to target_compile_options().
-      COMPILE_OPTIONS)
+      COMPILE_OPTIONS
+      # Arguments passed to target_link_options().
+      LINK_OPTIONS
+      # Arguments passed to set_target_properties().
+      PROPERTIES)
   _pfl_parse_arguments(${ARGN})
   _pfl_current_compoent()
 
@@ -963,4 +989,20 @@ function(PFL_add_executable)
   endif()
 
   install(TARGETS ${TARGET} DESTINATION ${CMAKE_INSTALL_BINDIR})
+endfunction()
+
+function(_pfl_get_real_target OUTPUT TARGET)
+  get_target_property("${OUTPUT}" "${TARGET}" ALIASED_TARGET)
+  if("${OUTPUT}" STREQUAL "")
+    set("${OUTPUT}" "${TARGET}")
+  endif()
+  set("${OUTPUT}"
+      ${${OUTPUT}}
+      PARENT_SCOPE)
+endfunction()
+
+function(pfl_catch_discover_tests TARGET)
+  _pfl_get_real_target(TARGET "${TARGET}" ALIASED_TARGET)
+  include(Catch)
+  catch_discover_tests("${TARGET}")
 endfunction()

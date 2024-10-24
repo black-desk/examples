@@ -77,3 +77,42 @@ function configure_cmake_project() {
 
 	run_in_directory "$binary_dir" cmake "$source_dir" "$@"
 }
+
+# This function downloads the latest release asset from a GitHub repository.
+#
+# Arguments:
+#   $1 - The GitHub repository in the format "owner/repo".
+#   $2 - The name of the asset to download.
+#   $3 - The path where the downloaded asset will be saved.
+# Returns:
+#   None. Error if neither curl nor wget is available.
+function download_latest_github_release() {
+	local repository
+	repository="$1"
+	shift
+	local asset
+	asset="$1"
+	shift
+	local save_as
+	save_as="$1"
+	shift
+	
+	local url
+	url="https://github.com/$repository/releases/latest/download/$asset"
+
+	mkdir -p "$(dirname -- "$save_as")"
+
+	if command -v curl &>/dev/null; then
+		curl -L "$url" -o "$save_as"
+		return
+	fi
+
+	if command -v wget &>/dev/null; then
+		wget "$url" -O "$save_as"
+		return
+	fi
+
+	log "[ERROR] One of the following commands is required: curl, wget"
+
+	false
+}
