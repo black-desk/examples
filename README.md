@@ -31,8 +31,10 @@ This is an example project to show how to write a D-Bus service and a
 client with QDBus communicating with each other via peer-to-peer message
 bus.
 
-- [Server source entry point](./apps/server/src/main.cpp)
-- [Client source entry point](./apps/client/src/main.cpp)
+- [Server source entry
+  point](D-Bus/create_and_connect_to_peer-to-peer_message_bus/apps/server/src/main.cpp)
+- [Client source entry
+  point](D-Bus/create_and_connect_to_peer-to-peer_message_bus/apps/client/src/main.cpp)
 
 ### How to get credentials of method caller
 
@@ -40,7 +42,9 @@ This is an example project to show how to get `UID`, `GID`, `PID` and
 Linux security labels of method caller as a D-Bus service implemented
 with QDBus and `sd_bus`.
 
-- [Server source entry point](./apps/server/src/main.cpp)
+- [Server source entry
+  point](D-Bus/get_credentials_of_method_caller/apps/server/src/main.cpp)
 - [Server source entry point implemented by
-  `sd_bus`](./apps/server-sd_bus/src/main.cpp)
-- [Client source entry point](./apps/client/src/main.cpp)
+  `sd_bus`](D-Bus/get_credentials_of_method_caller/apps/server-sd_bus/src/main.cpp)
+- [Client source entry
+  point](D-Bus/get_credentials_of_method_caller/apps/client/src/main.cpp)
