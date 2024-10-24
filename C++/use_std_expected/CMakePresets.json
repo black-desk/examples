@@ -1,0 +1,66 @@
+{
+        "version": 6,
+        "cmakeMinimumRequired": {
+                "major": 3,
+                "minor": 25,
+                "patch": 0
+        },
+        "configurePresets": [
+                {
+                        "name": "default",
+                        "displayName": "Default configuration",
+                        "description": "The default configuration for developers",
+                        "binaryDir": "${sourceDir}/build",
+                        "cacheVariables": {
+                                "CMAKE_CXX_CLANG_TIDY": "$env{CMAKE_CXX_CLANG_TIDY}",
+                                "CMAKE_CXX_FLAGS": "-Wall -Wextra -Wpedantic -Werror -O0 -g3 -fsanitize=address,undefined $env{CXX_FLAGS}",
+                                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                                "CMAKE_COLOR_DIAGNOSTICS": true
+                        }
+                }
+        ],
+        "buildPresets": [
+                {
+                        "name": "default",
+                        "displayName": "Default build",
+                        "description": "Use default configuration to build project for developers.",
+                        "configurePreset": "default"
+                }
+        ],
+        "testPresets": [
+                {
+                        "name": "default",
+                        "displayName": "Default tests",
+                        "description": "Use default configuration to test project for developers.",
+                        "configurePreset": "default",
+                        "output": {
+                                "outputOnFailure": true
+                        },
+                        "execution": {
+                                "noTestsAction": "error",
+                                "stopOnFailure": true
+                        }
+                }
+        ],
+        "workflowPresets": [
+                {
+                        "name": "default",
+                        "displayName": "Default workflow for developers",
+                        "description": "Configure, build then test project for developers.",
+                        "steps": [
+                                {
+                                        "type": "configure",
+                                        "name": "default"
+                                },
+                                {
+                                        "type": "build",
+                                        "name": "default"
+                                },
+                                {
+                                        "type": "test",
+                                        "name": "default"
+                                }
+                        ]
+                }
+        ]
+}
