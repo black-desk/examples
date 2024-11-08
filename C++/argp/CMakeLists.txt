@@ -1,0 +1,50 @@
+cmake_minimum_required(VERSION 3.11.4) # for RHEL 8
+
+# Let's place extra cmake scripts in /cmake directory
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+# Use this command to update PFL.cmake from GitHub release page:
+# wget -O cmake/PFL.cmake https://github.com/black-desk/PFL.cmake/releases/latest/download/PFL.cmake
+include(PFL)
+
+set(ENABLE_CPM YES)
+if(CMAKE_VERSION VERSION_LESS "3.14")
+  set(ENABLE_CPM NO)
+endif()
+
+if(CPM_LOCAL_PACKAGES_ONLY)
+  set(ENABLE_CPM NO)
+endif()
+
+macro cpm_add_dependencies()
+  # Use CPMFindPackage from CPM.cmake add dependencies here, for example:
+  # CPMFindPackage(
+    # NAME             nlohmann_json
+    # VERSION          3.5.0
+    # URL              "https://github.com/nlohmann/json/archive/refs/tags/v3.5.0.tar.gz"
+    # EXCLUDE_FROM_ALL ON
+    # OPTIONS          "JSON_BuildTests OFF")
+endmacro()
+
+# Use this command to update CPM.cmake from GitHub release page:
+# wget -O cmake/CPM.cmake https://github.com/cpm-cmake/CPM.cmake/releases/latest/download/CPM.cmake
+if(NOT ENABLE_CPM)
+  message(STATUS "CPM.cmake disabled.")
+else()
+  include(CPM)
+  cpm_add_dependencies()
+endif()
+
+project(
+  argp
+  VERSION      0.1.0
+  DESCRIPTION  "argp.h examples"
+  HOMEPAGE_URL "https://github.com/black-desk/examples/tree/master/C++"
+  LANGUAGES    CXX)
+
+# Use this command to update GitSemver.cmake from GitHub release page:
+# wget -O cmake/GitSemver.cmake https://github.com/black-desk/GitSemver.cmake/releases/latest/download/GitSemver.cmake
+include(GitSemver)
+gitsemver(PROJECT_VERSION)
+
+pfl_init()
