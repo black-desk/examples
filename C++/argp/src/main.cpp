@@ -1,5 +1,7 @@
 #include <cassert>
 #include <cstddef>
+#include <cstring>
+#include <iostream>
 
 #include <argp.h>
 
@@ -52,14 +54,14 @@ class argp_option_flag {
         int flag;
 };
 
-struct special_argp_parser_key {
+struct argp_key {
     public:
         static constexpr int arg = ARGP_KEY_ARG, args = ARGP_KEY_ARGS,
                              end = ARGP_KEY_END, no_args = ARGP_KEY_NO_ARGS,
                              init = ARGP_KEY_INIT, fini = ARGP_KEY_FINI,
                              success = ARGP_KEY_SUCCESS, error = ARGP_KEY_ERROR;
 
-        special_argp_parser_key(int key)
+        argp_key(int key)
                 : key(key)
         {
         }
@@ -128,32 +130,63 @@ const char *argp_program_bug_address =
 
 struct flags {
         bool debug = false;
+
         bool verbose = false;
-        enum class output_format { json, raw };
+
+        enum class output_format { unkown, raw, json, max };
         output_format output_format = output_format::raw;
+
+        std::string command;
 };
 
 error_t argp_parser(int key, char *arg, struct argp_state *state)
 {
         auto &flags = *reinterpret_cast<struct flags *>(state->input);
         switch (key) {
-        case static_cast<int>(argp_option_key::debug):
+        case static_cast<int>(argp_key::init): {
+                // NOTE: Initialize state before parsing.
+                return 0;
+        } break;
+
+        case static_cast<int>(argp_option_key::debug): {
                 flags.debug = true;
-                break;
-        case static_cast<int>(argp_option_key::verbose):
+                return 0;
+        } break;
+
+        case static_cast<int>(argp_option_key::verbose): {
                 flags.verbose = true;
-                break;
-        case static_cast<int>(argp_option_key::output_format):
+                return 0;
+        } break;
+
+        case static_cast<int>(argp_option_key::output_format): {
                 assert(arg != nullptr);
                 if (strcmp(arg, "json") == 0) {
+                        flags.output_format = flags::output_format::json;
+                        return 0;
                 }
-                flags.output_format = arg;
-                break;
-        case ARGP_KEY_ARG:
-        default:
+                if (strcmp(arg, "raw") == 0) {
+                        flags.output_format = flags::output_format::raw;
+                        return 0;
+                }
+
                 return ARGP_ERR_UNKNOWN;
+        } break;
+
+        case static_cast<int>(argp_key::arg): {
+                // NOTE: Parse positional arguments.
+
+                assert(arg != nullptr);
+                if (flags.command.empty()) {
+                        flags.command = arg;
+                        return 0;
+                }
+                return ARGP_ERR_UNKNOWN;
+        } break;
+
+        default: {
+                return ARGP_ERR_UNKNOWN;
+        } break;
         }
-        return 0;
 }
 
 int main(int argc, char **argv)
@@ -165,19 +198,18 @@ int main(int argc, char **argv)
                 new_argp_option_flag("verbose", argp_option_key::verbose,
                                      argp_option_flag::empty,
                                      "Enable verbose mode"),
-                new_argp_option_flag(
+                new_argp_option(
                         "output-format", argp_option_key::output_format,
-                        argp_option_flag::empty,
+                        "FORMAT", argp_option_flag::empty,
                         R"(Output format ("json" or "raw") [default: "raw"])"),
                 {}
         };
 
         argp argp = {
                 DESIGNATED_INITIALIZERS(.options =) option,
-                DESIGNATED_INITIALIZERS(.parser =) nullptr,
+                DESIGNATED_INITIALIZERS(.parser =) argp_parser,
                 DESIGNATED_INITIALIZERS(.args_doc =) "\n"
-                                                     "help [OPTION...]\n"
-                                                     "commands [OPTION...]",
+                                                     "<COMMAND> [OPTION...]",
                 DESIGNATED_INITIALIZERS(.doc =) //
                 "\n"
                 "Example program to show how to use argp.h in c++.",
@@ -195,6 +227,12 @@ int main(int argc, char **argv)
         if (ret) {
                 return ret;
         }
+
+        std::cout << "flags.debug: " << flags.debug << std::endl
+                  << "flags.verbose: " << flags.verbose << std::endl
+                  << "flags.output_format: "
+                  << static_cast<int>(flags.output_format) << std::endl
+                  << "flags.command: " << flags.command << std::endl;
 
         return 0;
 }
