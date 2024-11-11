@@ -1,7 +1,7 @@
 #include <cassert>
-#include <cstddef>
 #include <cstring>
 #include <iostream>
+#include <optional>
 
 #include <argp.h>
 
@@ -136,7 +136,7 @@ struct flags {
         enum class output_format { unkown, raw, json, max };
         output_format output_format = output_format::raw;
 
-        std::string command;
+        std::optional<std::string> command;
 };
 
 error_t argp_parser(int key, char *arg, struct argp_state *state)
@@ -176,7 +176,7 @@ error_t argp_parser(int key, char *arg, struct argp_state *state)
                 // NOTE: Parse positional arguments.
 
                 assert(arg != nullptr);
-                if (flags.command.empty()) {
+                if (!flags.command) {
                         flags.command = arg;
                         return 0;
                 }
@@ -232,7 +232,8 @@ int main(int argc, char **argv)
                   << "flags.verbose: " << flags.verbose << std::endl
                   << "flags.output_format: "
                   << static_cast<int>(flags.output_format) << std::endl
-                  << "flags.command: " << flags.command << std::endl;
+                  << "flags.command: " << flags.command.value_or("NULL")
+                  << std::endl;
 
         return 0;
 }
